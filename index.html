@@ -1,121 +1,107 @@
+
 <!doctype html>
 <html lang="bn">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Bangladesh TukTuk Driver</title>
 <style>
-*{box-sizing:border-box} body{margin:0;background:#10251d;color:#fff;font-family:system-ui,Arial,sans-serif;overflow:hidden;touch-action:none}
-#wrap{height:100dvh;display:flex;flex-direction:column;max-width:760px;margin:auto;background:#173b2b}
-header{padding:9px 12px;display:flex;justify-content:space-between;align-items:center;background:#0b2118;font-weight:700}
-.stats{display:flex;gap:12px;font-size:13px;flex-wrap:wrap}
-#game{display:block;width:100%;flex:1;min-height:0;background:#78b96a}
-#message{min-height:30px;text-align:center;padding:5px;font-size:13px;background:#143324}
-.controls{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:10px;background:#0b2118}
-button{border:0;border-radius:14px;padding:13px 8px;background:#2ebc69;color:#052313;font-weight:800;font-size:15px;box-shadow:0 3px 0 #147b42;touch-action:none}
-button:active{transform:translateY(2px);box-shadow:0 1px 0 #147b42}
-button.secondary{background:#e4c64d;box-shadow:0 3px 0 #9d8122}
-button.horn{background:#61c9ed;box-shadow:0 3px 0 #2784a5}
-button:disabled{opacity:.5}
-.small{font-size:11px;font-weight:500;display:block}
-#overlay{position:fixed;inset:0;background:#06150edb;display:flex;align-items:center;justify-content:center;padding:22px}
-.panel{max-width:360px;background:#173b2b;border:2px solid #44d47b;border-radius:20px;padding:22px;text-align:center}
-.panel h1{margin:0 0 8px;font-size:25px}.panel p{line-height:1.5;color:#d7f3df}
-.panel button{width:100%;margin-top:8px}
-</style>
-</head>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10291d;color:#fff;font-family:Arial,system-ui,sans-serif;touch-action:none}
+#app{height:100dvh;max-width:720px;margin:auto;display:flex;flex-direction:column;background:#173b2b}
+header{flex:none;background:#092519;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:5px;font-weight:bold;font-size:14px}
+.stats{display:flex;gap:9px;font-size:12px;white-space:nowrap}
+#scene{display:block;flex:1 1 auto;width:100%;height:55vh;min-height:180px;background:#80c66d}
+#hint{flex:none;min-height:34px;text-align:center;background:#17442d;padding:7px 5px;font-size:13px}
+.controls{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:8px;background:#092519}
+button{border:0;border-radius:12px;padding:12px 4px;background:#35d477;color:#062b17;font-weight:800;font-size:14px;box-shadow:0 3px 0 #168148;touch-action:none}
+button:active{transform:translateY(2px);box-shadow:0 1px 0 #168148}
+.blue{background:#6bd4f4;box-shadow:0 3px 0 #2583a3}.yellow{background:#f1d45a;box-shadow:0 3px 0 #a48827}.red{background:#ff8b73;box-shadow:0 3px 0 #a84331}
+button span{display:block;font-size:10px;font-weight:500;margin-top:2px}
+#cover{position:fixed;inset:0;background:#06150eeF;display:flex;align-items:center;justify-content:center;padding:20px;z-index:5}
+.panel{width:min(360px,100%);padding:22px;border-radius:20px;border:2px solid #43d67b;background:#17412d;text-align:center}
+.panel h1{margin:0 0 8px}.panel p{font-size:14px;line-height:1.55;color:#e0f4e6}
+.panel button{width:100%;font-size:17px;padding:14px}
+</style></head>
 <body>
-<div id="wrap">
-<header><div>🛺 বাংলাদেশ টুকটুক ড্রাইভার</div><div class="stats"><span>💰 ৳<b id="money">0</b></span><span>⛽ <b id="fuel">100</b>%</span><span>👤 <b id="pax">0</b>/3</span></div></header>
-<canvas id="game"></canvas>
-<div id="message">যাত্রী তুলতে স্টপেজের কাছে থামো। পাম্পে গিয়ে জ্বালানি নাও!</div>
+<div id="app">
+<header><div>🛺 টুকটুক ড্রাইভার</div><div class="stats"><span>৳<b id="cash">0</b></span><span>⛽<b id="fuel">100</b>%</span><span>👥<b id="people">0</b>/3</span></div></header>
+<canvas id="scene"></canvas>
+<div id="hint">▶ চালাও বাটন চেপে ধরো। স্টপেজে এলে “যাত্রী তোলো” চাপো।</div>
 <div class="controls">
-<button id="left">⬅️ বাম<span class="small">Left</span></button>
-<button id="drive">🚦 চালাও<span class="small">চেপে ধরে রাখো</span></button>
-<button id="right">ডান ➡️<span class="small">Right</span></button>
-<button id="horn" class="horn">📢 হর্ন</button>
-<button id="brake" class="secondary">🛑 ব্রেক</button>
-<button id="refuel" class="secondary">⛽ তেল নাও<span class="small">পাম্পের কাছে</span></button>
-</div>
-</div>
-<div id="overlay"><div class="panel"><h1>🛺 TukTuk Driver</h1><p>বাংলাদেশের রাস্তায় অটো চালাও, যাত্রী তোলো এবং গন্তব্যে পৌঁছে ভাড়া আয় করো। পেট্রোল পাম্পে গিয়ে তেল ভরো!</p><button id="start">গেম শুরু করো ▶</button></div></div>
+<button id="left">⬅ বাম<span>চেপে ধরো</span></button>
+<button id="go">🚦 চালাও<span>চেপে ধরো</span></button>
+<button id="right">ডান ➡<span>চেপে ধরো</span></button>
+<button id="horn" class="blue">📢 হর্ন</button>
+<button id="pickup" class="yellow">👥 যাত্রী তোলো</button>
+<button id="brake" class="red">🛑 ব্রেক</button>
+<button id="fuelup" class="yellow" style="grid-column:span 3">⛽ পেট্রোল পাম্পে তেল নাও</button>
+</div></div>
+<div id="cover"><div class="panel"><h1>🇧🇩 বাংলাদেশ টুকটুক</h1><p>সবুজ অটো চালাও, স্টপেজ থেকে যাত্রী তোলো, গন্তব্যে পৌঁছে ভাড়া আয় করো। পেট্রোল পাম্পে গিয়ে তেল ভরো।</p><button id="start">গেম শুরু ▶</button></div></div>
 <script>
-const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');
-const $=id=>document.getElementById(id);
-let W=360,H=600, dpr=1, player={x:180,y:470}, fuel=100,money=0,pax=0,speed=0,roadOffset=0,started=false,gameOver=false;
-let left=false,right=false,drive=false,brake=false, hornFlash=0;
-let stopY=150, pumpY=-500, last=0, distance=0;
-function resize(){const r=canvas.getBoundingClientRect();dpr=Math.min(devicePixelRatio||1,2);W=r.width;H=r.height;canvas.width=W*dpr;canvas.height=H*dpr;ctx.setTransform(dpr,0,0,dpr,0,0);player.x=Math.min(Math.max(player.x, W*.28),W*.72)}
-window.addEventListener('resize',resize);resize();
-function rounded(x,y,w,h,r,color){ctx.fillStyle=color;ctx.beginPath();ctx.roundRect(x,y,w,h,r);ctx.fill()}
-function drawAuto(x,y){ // stylized green tuk-tuk
-  // shadow
-  rounded(x-22,y-18,44,54,10,'#294331');
-  // rear passenger cabin
-  rounded(x-24,y-23,48,35,9,'#148b4a');
-  rounded(x-19,y-19,38,22,5,'#9ce5bc');
-  ctx.fillStyle='#145c39';ctx.fillRect(x-16,y-16,32,3);
-  // front hood
-  rounded(x-17,y+9,34,24,7,'#22b95e');
-  rounded(x-12,y+13,24,11,4,'#d7f4df');
-  // roof
-  rounded(x-26,y-28,52,8,4,'#08783c');
-  // wheels
-  rounded(x-28,y-7,7,19,3,'#17221c');rounded(x+21,y-7,7,19,3,'#17221c');
-  rounded(x-21,y+24,8,14,3,'#17221c');rounded(x+13,y+24,8,14,3,'#17221c');
-  // driver
-  ctx.fillStyle='#f2c39b';ctx.beginPath();ctx.arc(x,y+2,6,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle='#243c9a';ctx.fillRect(x-6,y+7,12,7);
-  ctx.fillStyle='#fff2a6';ctx.fillRect(x-12,y+29,7,3);ctx.fillRect(x+5,y+29,7,3);
-}
-function drawRoad(){
- ctx.fillStyle='#78b96a';ctx.fillRect(0,0,W,H);
- // trees and roadside houses
- for(let i=-1;i<8;i++){let y=((i*110+roadOffset*.55)% (H+110)+H+110)%(H+110)-50;
-  ctx.fillStyle='#277b43';ctx.beginPath();ctx.arc(25,y,13,0,7);ctx.fill();ctx.beginPath();ctx.arc(W-25,y+35,14,0,7);ctx.fill();
-  if(i%2===0){rounded(3,y+30,37,28,3,'#d9a45f');ctx.fillStyle='#a44735';ctx.beginPath();ctx.moveTo(0,y+30);ctx.lineTo(21,y+14);ctx.lineTo(43,y+30);ctx.fill();rounded(W-43,y+2,40,30,3,'#e5d18a');ctx.fillStyle='#a44735';ctx.beginPath();ctx.moveTo(W-47,y+2);ctx.lineTo(W-23,y-12);ctx.lineTo(W,y+2);ctx.fill();}
+const c=document.getElementById('scene'),g=c.getContext('2d'),$=id=>document.getElementById(id);
+let w=360,h=500,dpr=1,started=false,px=180,py=0,road=0,fuel=100,cash=0,people=0,stopY=120,pumpY=-380,travel=0,horn=0;
+let keys={left:false,right:false,go:false,brake:false};
+function resize(){let r=c.getBoundingClientRect();w=r.width;h=r.height;dpr=Math.min(devicePixelRatio||1,2);c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);g.setTransform(dpr,0,0,dpr,0,0);py=h*.77;px=Math.max(w*.34,Math.min(w*.66,px||w/2));}
+new ResizeObserver(resize).observe(c);resize();
+function text(s,x,y,size=12,color='#fff'){g.fillStyle=color;g.font='bold '+size+'px Arial';g.fillText(s,x,y)}
+function rr(x,y,a,b,r,col){g.fillStyle=col;g.beginPath();g.roundRect(x,y,a,b,r);g.fill()}
+function roadside(){
+ g.fillStyle='#83c96d';g.fillRect(0,0,w,h);
+ for(let i=-1;i<9;i++){let y=((i*105+road*.48)%(h+105)+h+105)%(h+105)-45;
+  g.fillStyle='#287c42';g.beginPath();g.arc(20,y,15,0,7);g.fill();g.beginPath();g.arc(w-19,y+38,16,0,7);g.fill();
+  rr(2,y+25,32,25,3,'#e9c77d');rr(w-36,y+4,34,28,3,'#e6d69c');
+  g.fillStyle='#a64d37';g.beginPath();g.moveTo(0,y+26);g.lineTo(18,y+10);g.lineTo(36,y+26);g.fill();
+  g.beginPath();g.moveTo(w-39,y+5);g.lineTo(w-19,y-9);g.lineTo(w,y+5);g.fill();
  }
- ctx.fillStyle='#555b5b';ctx.fillRect(W*.22,0,W*.56,H);
- ctx.fillStyle='#e7dfb9';ctx.fillRect(W*.22-3,0,3,H);ctx.fillRect(W*.78,0,3,H);
- ctx.strokeStyle='#f6e9a8';ctx.lineWidth=3;ctx.setLineDash([25,23]);ctx.lineDashOffset=-roadOffset;ctx.beginPath();ctx.moveTo(W/2,0);ctx.lineTo(W/2,H);ctx.stroke();ctx.setLineDash([]);
+ g.fillStyle='#555b5d';g.fillRect(w*.2,0,w*.6,h);
+ g.fillStyle='#eee2b4';g.fillRect(w*.2-3,0,3,h);g.fillRect(w*.8,0,3,h);
+ g.strokeStyle='#fff0a5';g.lineWidth=3;g.setLineDash([24,20]);g.lineDashOffset=-road;g.beginPath();g.moveTo(w/2,0);g.lineTo(w/2,h);g.stroke();g.setLineDash([]);
 }
-function drawStop(y){rounded(W*.06,y-24, W*.14,48,5,'#f3df8a');ctx.fillStyle='#543d20';ctx.font='bold 10px sans-serif';ctx.fillText('STOP',W*.075,y+3);ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(W*.15,y-34,8,0,7);ctx.fill();ctx.fillStyle='#333';ctx.fillRect(W*.147,y-26,6,20);ctx.fillStyle='#ffd0a0';ctx.beginPath();ctx.arc(W*.15,y-48,7,0,7);ctx.fill();ctx.fillStyle='#225';ctx.fillRect(W*.14,y-41,12,13)}
-function drawPump(y){rounded(W*.81,y-32,W*.17,64,6,'#f5e8c8');ctx.fillStyle='#d43d32';ctx.font='bold 10px sans-serif';ctx.fillText('PETROL',W*.82,y-12);ctx.fillText('PUMP',W*.835,y+1);rounded(W*.85,y+7,18,17,3,'#e34b3b')}
-function draw(){
- drawRoad();
- // roadside objects
- drawStop(stopY);drawPump(pumpY);
- // passengers shown inside rear cabin
- if(pax>0){ctx.fillStyle='#f4c59b';for(let i=0;i<pax;i++){ctx.beginPath();ctx.arc(player.x-12+i*12,player.y-12,4,0,7);ctx.fill()}}
- drawAuto(player.x,player.y);
- if(hornFlash>0){ctx.fillStyle='#fff';ctx.font='bold 20px sans-serif';ctx.fillText('PON! 📢',player.x-32,player.y-48);hornFlash--}
+function stop(){
+ rr(w*.035,stopY-19,w*.16,39,4,'#ffe69a');text('STOP',w*.055,stopY+4,10,'#503b1c');
+ g.fillStyle='#4b3320';g.fillRect(w*.12,stopY-34,4,15);g.fillStyle='#f4c49a';g.beginPath();g.arc(w*.122,stopY-40,7,0,7);g.fill();
 }
-function say(s){$('message').textContent=s}
-function update(dt){
- if(!started||gameOver)return;
- let moving=drive&&!brake&&fuel>0;
- speed=moving?155:0;
- if(brake)speed=0;
- if(left)player.x-=145*dt;if(right)player.x+=145*dt;
- player.x=Math.max(W*.27,Math.min(W*.73,player.x));
- if(moving){roadOffset+=speed*dt;distance+=speed*dt;fuel=Math.max(0,fuel-0.9*dt);stopY+=speed*dt;pumpY+=speed*dt;}
- else {stopY+=speed*dt;pumpY+=speed*dt;}
- if(stopY>H+50){stopY=-150-Math.random()*180;}
- if(pumpY>H+80){pumpY=-700-Math.random()*500;}
- // pickup/dropoff and pump proximity
- if(Math.abs(stopY-player.y)<38 && Math.abs(player.x-W*.15)<W*.2){
-   if(pax<3){pax++;$('pax').textContent=pax;say('যাত্রী উঠেছে! গন্তব্যে পৌঁছাতে সামনে চালাও।');stopY=-500;}
+function pump(){
+ rr(w*.81,pumpY-27,w*.17,55,5,'#fff0c9');text('PETROL',w*.82,pumpY-7,9,'#9e342b');text('PUMP',w*.84,pumpY+7,9,'#9e342b');rr(w*.85,pumpY+11,13,10,2,'#df4b3b');
+}
+function auto(){
+ // visible green three-wheeler viewed from behind
+ rr(px-25,py-27,50,54,9,'#087a3d');rr(px-20,py-23,40,27,5,'#a9e8c0');
+ g.fillStyle='#155c37';g.fillRect(px-17,py-19,34,3);
+ rr(px-17,py+5,34,24,7,'#20b85c');rr(px-11,py+9,22,12,3,'#dff7e7');
+ rr(px-29,py-11,8,24,3,'#17231c');rr(px+21,py-11,8,24,3,'#17231c');rr(px-20,py+23,8,12,3,'#17231c');rr(px+12,py+23,8,12,3,'#17231c');
+ rr(px-28,py-34,56,9,4,'#086331');
+ // driver head and shirt
+ g.fillStyle='#f0bd91';g.beginPath();g.arc(px,py+1,7,0,7);g.fill();rr(px-7,py+7,14,11,3,'#244d9a');
+ for(let i=0;i<people;i++){g.fillStyle='#f1c39d';g.beginPath();g.arc(px-12+i*12,py-16,4,0,7);g.fill()}
+}
+function draw(){roadside();stop();pump();auto();if(horn>0){text('PON PON! 📢',px-35,py-50,17,'#fff');horn--}}
+function say(s){$('hint').textContent=s}
+function refresh(){$('cash').textContent=cash;$('fuel').textContent=Math.ceil(fuel);$('people').textContent=people}
+function loop(){
+ if(started){
+  let moving=keys.go&&!keys.brake&&fuel>0;
+  if(keys.left)px-=3.3;if(keys.right)px+=3.3;px=Math.max(w*.25,Math.min(w*.75,px));
+  if(moving){let v=2.8;road+=v;stopY+=v;pumpY+=v;travel+=v;fuel=Math.max(0,fuel-.012);if(fuel===0)say('তেল শেষ! পেট্রোল পাম্পে গিয়ে তেল নাও।')}
+  if(stopY>h+45)stopY=-120-Math.random()*180;
+  if(pumpY>h+55)pumpY=-500-Math.random()*350;
+  if(travel>=950){travel=0;if(people){let earned=people*50;cash+=earned;people=0;refresh();say('গন্তব্যে পৌঁছেছ! ৳'+earned+' ভাড়া পেয়েছ।')} }
+  refresh();
  }
- if(distance>700){distance=0;if(pax>0){money+=50*pax;pax=0;$('money').textContent=money;$('pax').textContent=pax;say('গন্তব্যে পৌঁছেছ! ভাড়া পেয়েছ ৳'+50*3+'।');}}
- if(fuel<=0){say('জ্বালানি শেষ! পাম্পে যেতে রিফুয়েল বোতাম চাপো।');}
- $('fuel').textContent=Math.round(fuel);
+ draw();requestAnimationFrame(loop)
 }
-function loop(t){let dt=Math.min((t-last)/1000||0,.04);last=t;update(dt);draw();requestAnimationFrame(loop)}
 requestAnimationFrame(loop);
-function bindHold(id,fn){let el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();fn(true)});['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev,()=>fn(false)))}
-bindHold('left',v=>left=v);bindHold('right',v=>right=v);bindHold('drive',v=>drive=v);bindHold('brake',v=>brake=v);
-$('horn').onclick=()=>{hornFlash=25;say('পোঁ পোঁ! হর্ন বাজছে!')};
-$('refuel').onclick=()=>{if(Math.abs(pumpY-player.y)<95 && player.x>W*.58){fuel=100;$('fuel').textContent=100;say('ট্যাংক ভর্তি! আবার চালাতে পারো।')}else say('তেল নিতে পেট্রোল পাম্পের একদম কাছে যাও।')};
-$('start').onclick=()=>{$('overlay').style.display='none';started=true;say('চালাও বাটন চেপে ধরে অটো চালাও। স্টপেজে গিয়ে যাত্রী তোলো!')};
-</script>
-</body></html>
+function hold(id,key){let el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>keys[key]=false))}
+hold('left','left');hold('right','right');hold('go','go');hold('brake','brake');
+$('start').onclick=()=>{$('cover').style.display='none';started=true;say('অটো চালাতে চালাও চেপে ধরো। বাম-ডান দিয়ে রাস্তা বদলাও।')};
+$('horn').onclick=()=>{horn=35;say('পোঁ পোঁ! হর্ন বাজছে।')};
+$('pickup').onclick=()=>{
+ if(Math.abs(stopY-py)<95 && px<w*.55){
+  if(people<3){people++;stopY=-800;refresh();say('যাত্রী অটোতে উঠেছে! সামনে চালিয়ে গন্তব্যে যাও।')}
+  else say('অটোতে ৩ জন যাত্রী আছে। গন্তব্যে পৌঁছে নামাও।')
+ }else say('যাত্রী তুলতে বাম পাশের STOP চিহ্নের কাছে অটো থামাও।');
+};
+$('fuelup').onclick=()=>{
+ if(Math.abs(pumpY-py)<105 && px>w*.55){fuel=100;pumpY=-900;refresh();say('পেট্রোল ভরে গেছে! আবার চালাও।')}
+ else say('তেল নিতে ডান পাশের PETROL PUMP চিহ্নের কাছে যাও এবং অটো থামাও।');
+};
+</script></body></html>
