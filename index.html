@@ -1,107 +1,43 @@
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="bn">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
-<title>Bangladesh TukTuk Driver</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>বাংলাদেশি রিক্সা</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#10291d;color:#fff;font-family:Arial,system-ui,sans-serif;touch-action:none}
-#app{height:100dvh;max-width:720px;margin:auto;display:flex;flex-direction:column;background:#173b2b}
-header{flex:none;background:#092519;padding:9px 10px;display:flex;align-items:center;justify-content:space-between;gap:5px;font-weight:bold;font-size:14px}
-.stats{display:flex;gap:9px;font-size:12px;white-space:nowrap}
-#scene{display:block;flex:1 1 auto;width:100%;height:55vh;min-height:180px;background:#80c66d}
-#hint{flex:none;min-height:34px;text-align:center;background:#17442d;padding:7px 5px;font-size:13px}
-.controls{flex:none;display:grid;grid-template-columns:repeat(3,1fr);gap:7px;padding:8px;background:#092519}
-button{border:0;border-radius:12px;padding:12px 4px;background:#35d477;color:#062b17;font-weight:800;font-size:14px;box-shadow:0 3px 0 #168148;touch-action:none}
-button:active{transform:translateY(2px);box-shadow:0 1px 0 #168148}
-.blue{background:#6bd4f4;box-shadow:0 3px 0 #2583a3}.yellow{background:#f1d45a;box-shadow:0 3px 0 #a48827}.red{background:#ff8b73;box-shadow:0 3px 0 #a84331}
-button span{display:block;font-size:10px;font-weight:500;margin-top:2px}
-#cover{position:fixed;inset:0;background:#06150eeF;display:flex;align-items:center;justify-content:center;padding:20px;z-index:5}
-.panel{width:min(360px,100%);padding:22px;border-radius:20px;border:2px solid #43d67b;background:#17412d;text-align:center}
-.panel h1{margin:0 0 8px}.panel p{font-size:14px;line-height:1.55;color:#e0f4e6}
-.panel button{width:100%;font-size:17px;padding:14px}
-</style></head>
+:root{--bg:#f4f1ea;--fg:#1d1d1d;--btn:#006a4e;color-scheme:light dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#16181a;--fg:#f0f0f0;--btn:#2a9d6f}}
+:root[data-theme="dark"]{--bg:#16181a;--fg:#f0f0f0;--btn:#2a9d6f}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,"Noto Sans Bengali",sans-serif;display:flex;flex-direction:column;align-items:center;gap:10px;padding:10px;touch-action:manipulation;user-select:none;-webkit-user-select:none}
+h1{font-size:18px;margin:0}
+#wrap{position:relative;width:100%;max-width:420px}
+canvas{width:100%;aspect-ratio:3/4;border-radius:12px;display:block;touch-action:none;background:#9ad0ec}
+#fade{position:absolute;inset:0;background:#000;opacity:0;transition:opacity .25s;pointer-events:none;border-radius:12px}.mir{position:absolute;top:8px;width:30%;aspect-ratio:3/2;border:3px solid #333;border-radius:10px;pointer-events:none;box-shadow:0 0 0 2px #ccc}#ml{left:8px}#mr{right:8px}#hud{position:absolute;left:12px;top:96px;color:#fff;font:bold 15px sans-serif;text-shadow:0 1px 3px #000}
+#bat{margin-top:6px;width:130px;height:14px;border:2px solid #fff;border-radius:7px;overflow:hidden;background:rgba(0,0,0,.45)}
+#bf{display:block;height:100%;width:100%;background:#3ddc84}
+#msg{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,.6);color:#fff;border-radius:12px;font-size:22px;gap:8px;text-align:center}
+.row{display:flex;gap:8px;width:100%;max-width:420px}
+button{flex:1;font-size:24px;padding:14px 0;border:0;border-radius:12px;background:var(--btn);color:#fff;touch-action:none}
+#H{background:#6a1b9a}#B{background:#c62828}#S{background:#e08a00}
+</style>
+</head>
 <body>
-<div id="app">
-<header><div>🛺 টুকটুক ড্রাইভার</div><div class="stats"><span>৳<b id="cash">0</b></span><span>⛽<b id="fuel">100</b>%</span><span>👥<b id="people">0</b>/3</span></div></header>
-<canvas id="scene"></canvas>
-<div id="hint">▶ চালাও বাটন চেপে ধরো। স্টপেজে এলে “যাত্রী তোলো” চাপো।</div>
-<div class="controls">
-<button id="left">⬅ বাম<span>চেপে ধরো</span></button>
-<button id="go">🚦 চালাও<span>চেপে ধরো</span></button>
-<button id="right">ডান ➡<span>চেপে ধরো</span></button>
-<button id="horn" class="blue">📢 হর্ন</button>
-<button id="pickup" class="yellow">👥 যাত্রী তোলো</button>
-<button id="brake" class="red">🛑 ব্রেক</button>
-<button id="fuelup" class="yellow" style="grid-column:span 3">⛽ পেট্রোল পাম্পে তেল নাও</button>
-</div></div>
-<div id="cover"><div class="panel"><h1>🇧🇩 বাংলাদেশ টুকটুক</h1><p>সবুজ অটো চালাও, স্টপেজ থেকে যাত্রী তোলো, গন্তব্যে পৌঁছে ভাড়া আয় করো। পেট্রোল পাম্পে গিয়ে তেল ভরো।</p><button id="start">গেম শুরু ▶</button></div></div>
+<h1>🇧🇩 বাংলাদেশি রিক্সা</h1>
+<div id="wrap"><canvas id="c"></canvas><div class="mir" id="ml"></div><div class="mir" id="mr"></div><div id="hud"><div id="t"></div><div id="bat"><i id="bf"></i></div></div><div id="fade"></div><div id="msg"><b id="mt"></b><span>আবার খেলতে ট্যাপ করুন</span></div></div>
+<div class="row"><button id="L">◀</button><button id="B">⛔</button><button id="S">⚡</button><button id="H">📣</button><button id="R">▶</button></div>
+<div style="font-size:13px;opacity:.8">⛔ ব্রেক (সামান্য চার্জ ফেরে) · ⚡ স্পিড (চার্জ বেশি খরচ) · সবুজ চার্জিং প্যাডে ৫ সেকেন্ড থাকলে ফুল চার্জ · ◀ ▶ দিয়ে ফুটপাতেও ওঠা যায়</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
-const c=document.getElementById('scene'),g=c.getContext('2d'),$=id=>document.getElementById(id);
-let w=360,h=500,dpr=1,started=false,px=180,py=0,road=0,fuel=100,cash=0,people=0,stopY=120,pumpY=-380,travel=0,horn=0;
-let keys={left:false,right:false,go:false,brake:false};
-function resize(){let r=c.getBoundingClientRect();w=r.width;h=r.height;dpr=Math.min(devicePixelRatio||1,2);c.width=Math.round(w*dpr);c.height=Math.round(h*dpr);g.setTransform(dpr,0,0,dpr,0,0);py=h*.77;px=Math.max(w*.34,Math.min(w*.66,px||w/2));}
-new ResizeObserver(resize).observe(c);resize();
-function text(s,x,y,size=12,color='#fff'){g.fillStyle=color;g.font='bold '+size+'px Arial';g.fillText(s,x,y)}
-function rr(x,y,a,b,r,col){g.fillStyle=col;g.beginPath();g.roundRect(x,y,a,b,r);g.fill()}
-function roadside(){
- g.fillStyle='#83c96d';g.fillRect(0,0,w,h);
- for(let i=-1;i<9;i++){let y=((i*105+road*.48)%(h+105)+h+105)%(h+105)-45;
-  g.fillStyle='#287c42';g.beginPath();g.arc(20,y,15,0,7);g.fill();g.beginPath();g.arc(w-19,y+38,16,0,7);g.fill();
-  rr(2,y+25,32,25,3,'#e9c77d');rr(w-36,y+4,34,28,3,'#e6d69c');
-  g.fillStyle='#a64d37';g.beginPath();g.moveTo(0,y+26);g.lineTo(18,y+10);g.lineTo(36,y+26);g.fill();
-  g.beginPath();g.moveTo(w-39,y+5);g.lineTo(w-19,y-9);g.lineTo(w,y+5);g.fill();
- }
- g.fillStyle='#555b5d';g.fillRect(w*.2,0,w*.6,h);
- g.fillStyle='#eee2b4';g.fillRect(w*.2-3,0,3,h);g.fillRect(w*.8,0,3,h);
- g.strokeStyle='#fff0a5';g.lineWidth=3;g.setLineDash([24,20]);g.lineDashOffset=-road;g.beginPath();g.moveTo(w/2,0);g.lineTo(w/2,h);g.stroke();g.setLineDash([]);
-}
-function stop(){
- rr(w*.035,stopY-19,w*.16,39,4,'#ffe69a');text('STOP',w*.055,stopY+4,10,'#503b1c');
- g.fillStyle='#4b3320';g.fillRect(w*.12,stopY-34,4,15);g.fillStyle='#f4c49a';g.beginPath();g.arc(w*.122,stopY-40,7,0,7);g.fill();
-}
-function pump(){
- rr(w*.81,pumpY-27,w*.17,55,5,'#fff0c9');text('PETROL',w*.82,pumpY-7,9,'#9e342b');text('PUMP',w*.84,pumpY+7,9,'#9e342b');rr(w*.85,pumpY+11,13,10,2,'#df4b3b');
-}
-function auto(){
- // visible green three-wheeler viewed from behind
- rr(px-25,py-27,50,54,9,'#087a3d');rr(px-20,py-23,40,27,5,'#a9e8c0');
- g.fillStyle='#155c37';g.fillRect(px-17,py-19,34,3);
- rr(px-17,py+5,34,24,7,'#20b85c');rr(px-11,py+9,22,12,3,'#dff7e7');
- rr(px-29,py-11,8,24,3,'#17231c');rr(px+21,py-11,8,24,3,'#17231c');rr(px-20,py+23,8,12,3,'#17231c');rr(px+12,py+23,8,12,3,'#17231c');
- rr(px-28,py-34,56,9,4,'#086331');
- // driver head and shirt
- g.fillStyle='#f0bd91';g.beginPath();g.arc(px,py+1,7,0,7);g.fill();rr(px-7,py+7,14,11,3,'#244d9a');
- for(let i=0;i<people;i++){g.fillStyle='#f1c39d';g.beginPath();g.arc(px-12+i*12,py-16,4,0,7);g.fill()}
-}
-function draw(){roadside();stop();pump();auto();if(horn>0){text('PON PON! 📢',px-35,py-50,17,'#fff');horn--}}
-function say(s){$('hint').textContent=s}
-function refresh(){$('cash').textContent=cash;$('fuel').textContent=Math.ceil(fuel);$('people').textContent=people}
-function loop(){
- if(started){
-  let moving=keys.go&&!keys.brake&&fuel>0;
-  if(keys.left)px-=3.3;if(keys.right)px+=3.3;px=Math.max(w*.25,Math.min(w*.75,px));
-  if(moving){let v=2.8;road+=v;stopY+=v;pumpY+=v;travel+=v;fuel=Math.max(0,fuel-.012);if(fuel===0)say('তেল শেষ! পেট্রোল পাম্পে গিয়ে তেল নাও।')}
-  if(stopY>h+45)stopY=-120-Math.random()*180;
-  if(pumpY>h+55)pumpY=-500-Math.random()*350;
-  if(travel>=950){travel=0;if(people){let earned=people*50;cash+=earned;people=0;refresh();say('গন্তব্যে পৌঁছেছ! ৳'+earned+' ভাড়া পেয়েছ।')} }
-  refresh();
- }
- draw();requestAnimationFrame(loop)
-}
-requestAnimationFrame(loop);
-function hold(id,key){let el=$(id);el.addEventListener('pointerdown',e=>{e.preventDefault();keys[key]=true;el.setPointerCapture(e.pointerId)});['pointerup','pointercancel','lostpointercapture'].forEach(ev=>el.addEventListener(ev,()=>keys[key]=false))}
-hold('left','left');hold('right','right');hold('go','go');hold('brake','brake');
-$('start').onclick=()=>{$('cover').style.display='none';started=true;say('অটো চালাতে চালাও চেপে ধরো। বাম-ডান দিয়ে রাস্তা বদলাও।')};
-$('horn').onclick=()=>{horn=35;say('পোঁ পোঁ! হর্ন বাজছে।')};
-$('pickup').onclick=()=>{
- if(Math.abs(stopY-py)<95 && px<w*.55){
-  if(people<3){people++;stopY=-800;refresh();say('যাত্রী অটোতে উঠেছে! সামনে চালিয়ে গন্তব্যে যাও।')}
-  else say('অটোতে ৩ জন যাত্রী আছে। গন্তব্যে পৌঁছে নামাও।')
- }else say('যাত্রী তুলতে বাম পাশের STOP চিহ্নের কাছে অটো থামাও।');
-};
-$('fuelup').onclick=()=>{
- if(Math.abs(pumpY-py)<105 && px>w*.55){fuel=100;pumpY=-900;refresh();say('পেট্রোল ভরে গেছে! আবার চালাও।')}
- else say('তেল নিতে ডান পাশের PETROL PUMP চিহ্নের কাছে যাও এবং অটো থামাও।');
-};
-</script></body></html>
+const $=id=>document.getElementById(id),r=n=>Math.floor(Math.random()*n);
+const cv=$('c'),t=$('t'),bf=$('bf'),msg=$('msg'),mt=$('mt'),fade=$('fade');
+const renderer=new THREE.WebGLRenderer({canvas:cv,antialias:true});
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x9ad0ec);scene.fog=new THREE.Fog(0x9ad0ec,25,100);
+const cam=new THREE.PerspectiveCamera(62,3/4,0.1,200);const mcam=new THREE.PerspectiveCamera(55,1.5,0.1,200);cam.position.set(0,4.4,8.5);cam.lookAt(0,1,-12);
+scene.add(new THREE.AmbientLight(0xffffff,0.75));
+const sun=new THREE.DirectionalLight(0xffffff,0.7);sun.position.set(5,10,6);scene.add(sun);
+function resize(){const w=cv.clientWidth,h=cv.clientHeight;renderer.setSize(w,h,false);cam.aspect=w/h;cam.updateProjectionMatrix()}
+addEventListener('resize',resize);resize();
+
+const mat=c=>new THREE.MeshLambertMaterial({color:c,side:THREE.DoubleSide});
+function box(w,h,l,col,x,y,z,g){const m=new THREE.Mesh(new THREE.
